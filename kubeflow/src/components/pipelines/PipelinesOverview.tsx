@@ -38,12 +38,17 @@ import {
 import { SectionPage } from '../common/SectionPage';
 import { PipelinesOverviewContent } from './PipelinesOverviewCards';
 
+function parseCreationTimestamp(timestamp?: string): number {
+  const parsed = Date.parse(timestamp ?? '');
+  return Number.isNaN(parsed) ? 0 : parsed;
+}
+
 function sortByCreationTimestampDesc<T extends { metadata: { creationTimestamp?: string } }>(
   items: T[]
 ): T[] {
   return [...items].sort((left, right) => {
-    const leftTimestamp = Date.parse(left.metadata.creationTimestamp ?? '');
-    const rightTimestamp = Date.parse(right.metadata.creationTimestamp ?? '');
+    const leftTimestamp = parseCreationTimestamp(left.metadata.creationTimestamp);
+    const rightTimestamp = parseCreationTimestamp(right.metadata.creationTimestamp);
     return rightTimestamp - leftTimestamp;
   });
 }

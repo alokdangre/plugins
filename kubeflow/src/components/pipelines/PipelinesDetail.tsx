@@ -213,11 +213,12 @@ export function PipelinesDetail(props: { namespace?: string; name?: string }) {
                   {
                     id: 'version-comparison',
                     section: (
-                      <SectionBox title="Latest vs Previous Version">
+                      <SectionBox title="Latest vs Previous Version (YAML Spec)">
                         <Grid container spacing={2}>
                           {[latestVersion, previousVersion].map(version => (
                             <Grid item xs={12} md={6} key={version.metadata.name}>
                               <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+                                {version === latestVersion ? 'Latest' : 'Previous'}:{' '}
                                 {version.metadata.name}
                               </Typography>
                               <Box
@@ -233,7 +234,47 @@ export function PipelinesDetail(props: { namespace?: string; name?: string }) {
                                   borderRadius: '4px',
                                 }}
                               >
-                                {JSON.stringify(version.spec, null, 2)}
+                                {(() => {
+                                  try {
+                                    // Lazily serialize to YAML-like format using JSON-to-YAML conversion
+                                    const lines: string[] = [];
+                                    const printYaml = (obj: unknown, indent = 0): void => {
+                                      const pad = ' '.repeat(indent * 2);
+                                      if (obj === null || obj === undefined) {
+                                        lines.push(`${pad}null`);
+                                      } else if (typeof obj === 'string') {
+                                        lines.push(`${pad}"${obj}"`);
+                                      } else if (typeof obj !== 'object') {
+                                        lines.push(`${pad}${obj}`);
+                                      } else if (Array.isArray(obj)) {
+                                        obj.forEach(item => {
+                                          lines.push(`${pad}-`);
+                                          printYaml(item, indent + 1);
+                                        });
+                                      } else {
+                                        Object.entries(obj as Record<string, unknown>).forEach(
+                                          ([key, value]) => {
+                                            if (
+                                              value !== null &&
+                                              value !== undefined &&
+                                              typeof value === 'object' &&
+                                              !Array.isArray(value)
+                                            ) {
+                                              lines.push(`${pad}${key}:`);
+                                              printYaml(value, indent + 1);
+                                            } else {
+                                              lines.push(`${pad}${key}: ${JSON.stringify(value)}`);
+                                            }
+                                          }
+                                        );
+                                      }
+                                    };
+                                    printYaml(version.spec);
+                                    return lines.join('\n');
+                                  } catch {
+                                    return JSON.stringify(version.spec, null, 2);
+                                  }
+                                })()}
                               </Box>
                             </Grid>
                           ))}

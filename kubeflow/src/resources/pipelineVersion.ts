@@ -43,13 +43,21 @@ export interface PipelineSpec {
 
 /**
  * PipelineVersion spec fields rendered by the Headlamp UI.
+ * @see {@link https://github.com/kubeflow/pipelines/blob/master/backend/src/crd/pkg/apis/machinelearning.seldon.io/v1/types.go}
+ * @see {@link https://www.kubeflow.org/docs/components/pipelines/v2/reference/api/kubeflow-pipeline-api-spec/#pipelineversion}
  */
 export interface KubeflowPipelineVersionSpec {
+  /** User-friendly display name of the pipeline version */
   displayName?: string;
+  /** Description describing the changes or purpose of this pipeline version */
   description?: string;
+  /** The parent pipeline name this version belongs to */
   pipelineName?: string;
+  /** Direct URI to the compiled pipeline YAML/JSON spec (e.g. s3://... or https://...) */
   pipelineSpecURI?: string;
+  /** URL pointing to the source code repository (e.g. GitHub, GitLab link) */
   codeSourceURL?: string;
+  /** Inline pipeline spec containing the compiled DAG or component structure */
   pipelineSpec?: PipelineSpec;
   [key: string]: unknown;
 }
